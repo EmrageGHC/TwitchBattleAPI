@@ -6,7 +6,7 @@ package org.emrage.twitchbattleapi.config;
  */
 public class DatabaseConfig {
     // MongoDB Verbindungsdaten
-    private static final String DB_HOST = "deine-server-ip";
+    private static final String DB_HOST = "209.25.141.65";
     private static final int DB_PORT = 30065;
     private static final String DB_NAME = "TwitchBattle";
     private static final String DB_USER = "twitchbattle_dev";

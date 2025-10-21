@@ -1,7 +1,12 @@
 package org.emrage.twitchbattleapi.teams;
 
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import com.mongodb.client.model.Filters;
+import org.bson.Document;
+import org.bson.conversions.Bson;
+import org.bukkit.Bukkit;
+import org.bukkit.entity.Player;
+import org.emrage.twitchbattleapi.TwitchBattleAPI;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,9 +14,6 @@ import java.util.Map;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.bukkit.Bukkit;
-import org.bukkit.entity.Player;
-import org.emrage.twitchbattleapi.TwitchBattleAPI;
 
 /**
  * Manages team operations
@@ -21,6 +23,7 @@ public class TeamManager {
     private final Map<Integer, Team> teams;
     private final Map<UUID, Integer> playerTeams;
     private final Logger logger = Logger.getLogger("TwitchBattleAPI");
+    private int nextTeamId = 1;
 
     /**
      * Create a new team manager
@@ -37,31 +40,34 @@ public class TeamManager {
      * Load teams from the database
      */
     private void loadTeams() {
-        ResultSet teamResult = api.getDatabaseManager().executeQuery("SELECT * FROM teams");
-        try {
-            while (teamResult != null && teamResult.next()) {
-                int id = teamResult.getInt("id");
-                String name = teamResult.getString("name");
-                String displayName = teamResult.getString("display_name");
-                String color = teamResult.getString("color");
-                
-                Team team = new Team(id, name, displayName, color);
-                teams.put(id, team);
+        // Load teams
+        List<Document> teamDocs = api.getDatabaseManager().find("teams", new Document());
+        for (Document doc : teamDocs) {
+            int id = doc.getInteger("id", 0);
+            String name = doc.getString("name");
+            String displayName = doc.getString("display_name");
+            String color = doc.getString("color");
+
+            Team team = new Team(id, name, displayName, color);
+            teams.put(id, team);
+
+            // Keep track of the highest team ID
+            if (id >= nextTeamId) {
+                nextTeamId = id + 1;
             }
-            
-            // Load team members
-            ResultSet playerResult = api.getDatabaseManager().executeQuery("SELECT * FROM players WHERE team_id IS NOT NULL");
-            while (playerResult != null && playerResult.next()) {
-                UUID playerUUID = UUID.fromString(playerResult.getString("uuid"));
-                int teamId = playerResult.getInt("team_id");
-                
-                if (teams.containsKey(teamId)) {
-                    teams.get(teamId).addMember(playerUUID);
-                    playerTeams.put(playerUUID, teamId);
-                }
+        }
+
+        // Load team members
+        Bson teamFilter = Filters.ne("team_id", null);
+        List<Document> playerDocs = api.getDatabaseManager().find("players", (Document) teamFilter);
+        for (Document doc : playerDocs) {
+            UUID playerUUID = UUID.fromString(doc.getString("uuid"));
+            int teamId = doc.getInteger("team_id");
+
+            if (teams.containsKey(teamId)) {
+                teams.get(teamId).addMember(playerUUID);
+                playerTeams.put(playerUUID, teamId);
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to load teams from database", e);
         }
     }
 
@@ -73,23 +79,30 @@ public class TeamManager {
      * @return The created team, or null if creation failed
      */
     public Team createTeam(String name, String displayName, String color) {
-        String sql = "INSERT INTO teams (name, display_name, color) VALUES (?, ?, ?)";
-        boolean success = api.getDatabaseManager().executeUpdate(sql, name, displayName, color);
-        
-        if (success) {
-            ResultSet rs = api.getDatabaseManager().executeQuery("SELECT LAST_INSERT_ID() as id");
-            try {
-                if (rs != null && rs.next()) {
-                    int id = rs.getInt("id");
-                    Team team = new Team(id, name, displayName, color);
-                    teams.put(id, team);
-                    return team;
-                }
-            } catch (SQLException e) {
-                logger.log(Level.SEVERE, "Failed to retrieve team ID after creation", e);
+        // Check if a team with this name already exists
+        for (Team team : teams.values()) {
+            if (team.getName().equalsIgnoreCase(name)) {
+                return null;
             }
         }
-        
+
+        // Create new team document
+        Document teamDoc = new Document()
+                .append("id", nextTeamId)
+                .append("name", name)
+                .append("display_name", displayName)
+                .append("color", color)
+                .append("created_at", new java.util.Date());
+
+        boolean success = api.getDatabaseManager().insertOne("teams", teamDoc);
+
+        if (success) {
+            Team team = new Team(nextTeamId, name, displayName, color);
+            teams.put(nextTeamId, team);
+            nextTeamId++;
+            return team;
+        }
+
         return null;
     }
 
@@ -133,20 +146,25 @@ public class TeamManager {
         if (!teams.containsKey(id)) {
             return false;
         }
-        
-        String sql = "DELETE FROM teams WHERE id = ?";
-        boolean success = api.getDatabaseManager().executeUpdate(sql, id);
-        
+
+        Bson filter = Filters.eq("id", id);
+        boolean success = api.getDatabaseManager().deleteOne("teams", new Document("id", id));
+
         if (success) {
             // Remove players from the team
             for (UUID playerUUID : new ArrayList<>(teams.get(id).getMembers())) {
                 playerTeams.remove(playerUUID);
+
+                // Update player document to remove team association
+                Document playerFilter = new Document("uuid", playerUUID.toString());
+                Document update = new Document("team_id", null);
+                api.getDatabaseManager().updateOne("players", playerFilter, update);
             }
-            
+
             teams.remove(id);
             return true;
         }
-        
+
         return false;
     }
 
@@ -156,8 +174,13 @@ public class TeamManager {
      * @return True if the team was updated, false otherwise
      */
     public boolean updateTeam(Team team) {
-        String sql = "UPDATE teams SET name = ?, display_name = ?, color = ? WHERE id = ?";
-        return api.getDatabaseManager().executeUpdate(sql, team.getName(), team.getDisplayName(), team.getColor(), team.getId());
+        Document filter = new Document("id", team.getId());
+        Document update = new Document()
+                .append("name", team.getName())
+                .append("display_name", team.getDisplayName())
+                .append("color", team.getColor());
+
+        return api.getDatabaseManager().updateOne("teams", filter, update);
     }
 
     /**
@@ -170,25 +193,43 @@ public class TeamManager {
         if (!teams.containsKey(teamId)) {
             return false;
         }
-        
+
         // Remove from current team if any
         if (playerTeams.containsKey(playerUUID)) {
             removePlayerFromTeam(playerUUID);
         }
-        
-        String sql = "INSERT INTO players (uuid, username, team_id) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE team_id = ?";
-        
+
+        // Get player username
         Player player = Bukkit.getPlayer(playerUUID);
         String username = player != null ? player.getName() : playerUUID.toString();
-        
-        boolean success = api.getDatabaseManager().executeUpdate(sql, playerUUID.toString(), username, teamId, teamId);
-        
+
+        // Check if player exists in database
+        Document playerFilter = new Document("uuid", playerUUID.toString());
+        Document playerDoc = api.getDatabaseManager().findOne("players", playerFilter);
+
+        boolean success;
+        if (playerDoc == null) {
+            // Insert new player document
+            Document newPlayerDoc = new Document()
+                    .append("uuid", playerUUID.toString())
+                    .append("username", username)
+                    .append("team_id", teamId);
+            success = api.getDatabaseManager().insertOne("players", newPlayerDoc);
+        } else {
+            // Update existing player document
+            Document update = new Document("team_id", teamId);
+            if (!playerDoc.getString("username").equals(username)) {
+                update.append("username", username);
+            }
+            success = api.getDatabaseManager().updateOne("players", playerFilter, update);
+        }
+
         if (success) {
             teams.get(teamId).addMember(playerUUID);
             playerTeams.put(playerUUID, teamId);
             return true;
         }
-        
+
         return false;
     }
 
@@ -201,17 +242,18 @@ public class TeamManager {
         if (!playerTeams.containsKey(playerUUID)) {
             return false;
         }
-        
+
         int teamId = playerTeams.get(playerUUID);
-        String sql = "UPDATE players SET team_id = NULL WHERE uuid = ?";
-        boolean success = api.getDatabaseManager().executeUpdate(sql, playerUUID.toString());
-        
+        Document filter = new Document("uuid", playerUUID.toString());
+        Document update = new Document("team_id", null);
+        boolean success = api.getDatabaseManager().updateOne("players", filter, update);
+
         if (success) {
             teams.get(teamId).removeMember(playerUUID);
             playerTeams.remove(playerUUID);
             return true;
         }
-        
+
         return false;
     }
 
@@ -224,7 +266,7 @@ public class TeamManager {
         if (!playerTeams.containsKey(playerUUID)) {
             return null;
         }
-        
+
         return teams.get(playerTeams.get(playerUUID));
     }
 }

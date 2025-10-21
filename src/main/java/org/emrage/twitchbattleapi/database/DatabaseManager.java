@@ -1,20 +1,27 @@
 package org.emrage.twitchbattleapi.database;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.mongodb.ConnectionString;
+import com.mongodb.MongoClientSettings;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
 import org.emrage.twitchbattleapi.config.DatabaseConfig;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
- * Manages database connections and operations
+ * Manages MongoDB database connections and operations
  */
 public class DatabaseManager {
     private String connectionString;
-    private Connection connection;
+    private MongoClient mongoClient;
+    private MongoDatabase database;
     private final Logger logger = Logger.getLogger("TwitchBattleAPI");
 
     /**
@@ -22,12 +29,11 @@ public class DatabaseManager {
      */
     public DatabaseManager() {
         this.connectionString = DatabaseConfig.getConnectionString();
-        connect();
     }
 
     /**
      * Create a new database manager
-     * @param connectionString JDBC connection string
+     * @param connectionString MongoDB connection string
      */
     public DatabaseManager(String connectionString) {
         this.connectionString = connectionString;
@@ -35,7 +41,7 @@ public class DatabaseManager {
 
     /**
      * Set a custom connection string
-     * @param connectionString JDBC connection string
+     * @param connectionString MongoDB connection string
      */
     public void setConnectionString(String connectionString) {
         this.connectionString = connectionString;
@@ -46,10 +52,18 @@ public class DatabaseManager {
      */
     public void connect() {
         try {
-            this.connection = DriverManager.getConnection(connectionString);
-            logger.info("Successfully connected to database");
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to connect to database", e);
+            // Set up MongoDB connection
+            ConnectionString connString = new ConnectionString(connectionString);
+            MongoClientSettings settings = MongoClientSettings.builder()
+                    .applyConnectionString(connString)
+                    .build();
+
+            mongoClient = MongoClients.create(settings);
+            database = mongoClient.getDatabase(DatabaseConfig.getDatabaseName());
+
+            logger.info("Successfully connected to MongoDB database");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to connect to MongoDB database", e);
         }
     }
 
@@ -58,122 +72,201 @@ public class DatabaseManager {
      */
     public void disconnect() {
         try {
-            if (connection != null && !connection.isClosed()) {
-                connection.close();
-                logger.info("Successfully disconnected from database");
+            if (mongoClient != null) {
+                mongoClient.close();
+                logger.info("Successfully disconnected from MongoDB database");
             }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to disconnect from database", e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to disconnect from MongoDB database", e);
         }
     }
 
     /**
-     * Create tables needed for this API
+     * Create collections needed for this API
      */
     public void createTables() {
-        String teamTable = "CREATE TABLE IF NOT EXISTS teams (" +
-                "id INTEGER PRIMARY KEY AUTO_INCREMENT, " +
-                "name VARCHAR(100) NOT NULL, " +
-                "display_name VARCHAR(255), " +
-                "color VARCHAR(50), " +
-                "created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
-
-        String playerTable = "CREATE TABLE IF NOT EXISTS players (" +
-                "uuid VARCHAR(36) PRIMARY KEY, " +
-                "username VARCHAR(16) NOT NULL, " +
-                "team_id INTEGER, " +
-                "FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL)";
-
-        String pointsTable = "CREATE TABLE IF NOT EXISTS points (" +
-                "id INTEGER PRIMARY KEY AUTO_INCREMENT, " +
-                "team_id INTEGER, " +
-                "player_uuid VARCHAR(36), " +
-                "points INTEGER DEFAULT 0, " +
-                "last_updated TIMESTAMP DEFAULT CURRENT_TIMESTAMP, " +
-                "FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE CASCADE, " +
-                "FOREIGN KEY (player_uuid) REFERENCES players(uuid) ON DELETE CASCADE)";
-
-        executeUpdate(teamTable);
-        executeUpdate(playerTable);
-        executeUpdate(pointsTable);
-    }
-
-    /**
-     * Execute a SQL update statement
-     * @param sql The SQL statement
-     * @return True if successful, false otherwise
-     */
-    public boolean executeUpdate(String sql) {
         try {
-            if (connection == null || connection.isClosed()) {
-                connect();
+            // Check if collections exist, create them if not
+            boolean hasTeams = false;
+            boolean hasPlayers = false;
+            boolean hasPoints = false;
+
+            for (String name : database.listCollectionNames()) {
+                if (name.equals("teams")) hasTeams = true;
+                if (name.equals("players")) hasPlayers = true;
+                if (name.equals("points")) hasPoints = true;
             }
-            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-                stmt.executeUpdate();
-                return true;
-            }
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to execute update: " + sql, e);
-            return false;
+
+            if (!hasTeams) database.createCollection("teams");
+            if (!hasPlayers) database.createCollection("players");
+            if (!hasPoints) database.createCollection("points");
+
+            // Create indexes for better performance
+            database.getCollection("teams").createIndex(new Document("name", 1));
+            database.getCollection("players").createIndex(new Document("uuid", 1));
+            database.getCollection("players").createIndex(new Document("team_id", 1));
+            database.getCollection("points").createIndex(new Document("team_id", 1));
+            database.getCollection("points").createIndex(new Document("player_uuid", 1));
+
+            logger.info("Successfully initialized MongoDB collections and indices");
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Failed to initialize MongoDB collections", e);
         }
     }
 
-    public ResultSet executeQuery(String sql) {
+    /**
+     * Find documents in a collection
+     * @param collection Collection name
+     * @param filter Filter document
+     * @return List of matching documents
+     */
+    public List<Document> find(String collection, Document filter) {
         try {
-            if (connection == null || connection.isClosed()) {
-                connect();
-            }
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            return stmt.executeQuery();
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to execute query: " + sql, e);
+            List<Document> results = new ArrayList<>();
+            MongoCollection<Document> coll = database.getCollection(collection);
+            coll.find(filter).into(results);
+            return results;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error executing find query", e);
+            return new ArrayList<>();
+        }
+    }
+
+    /**
+     * Find a single document in a collection
+     * @param collection Collection name
+     * @param filter Filter document
+     * @return Matching document or null
+     */
+    public Document findOne(String collection, Document filter) {
+        try {
+            return database.getCollection(collection).find(filter).first();
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error executing findOne query", e);
             return null;
         }
     }
 
     /**
-     * Execute a prepared statement with parameters
-     * @param sql The SQL statement with placeholders
-     * @param params The parameters to replace the placeholders
+     * Insert a document into a collection
+     * @param collection Collection name
+     * @param document Document to insert
      * @return True if successful, false otherwise
      */
-    public boolean executeUpdate(String sql, Object... params) {
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            for (int i = 0; i < params.length; i++) {
-                stmt.setObject(i + 1, params[i]);
-            }
-            stmt.executeUpdate();
+    public boolean insertOne(String collection, Document document) {
+        try {
+            database.getCollection(collection).insertOne(document);
             return true;
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to execute update with params", e);
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error inserting document", e);
             return false;
         }
     }
 
     /**
-     * Execute a prepared query with parameters
-     * @param sql The SQL statement with placeholders
-     * @param params The parameters to replace the placeholders
-     * @return ResultSet with the query results
+     * Update a document in a collection
+     * @param collection Collection name
+     * @param filter Filter to find the document
+     * @param update Update operations
+     * @return True if successful, false otherwise
      */
-    public ResultSet executeQuery(String sql, Object... params) {
+    public boolean updateOne(String collection, Document filter, Document update) {
         try {
-            PreparedStatement stmt = connection.prepareStatement(sql);
-            for (int i = 0; i < params.length; i++) {
-                stmt.setObject(i + 1, params[i]);
-            }
-            return stmt.executeQuery();
-        } catch (SQLException e) {
-            logger.log(Level.SEVERE, "Failed to execute query with params", e);
-            return null;
+            database.getCollection(collection).updateOne(filter, new Document("$set", update));
+            return true;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error updating document", e);
+            return false;
         }
     }
 
     /**
-     * Get the connection object
-     * @return The database connection
+     * Delete a document from a collection
+     * @param collection Collection name
+     * @param filter Filter to find the document
+     * @return True if successful, false otherwise
      */
-    public Connection getConnection() {
-        return connection;
+    public boolean deleteOne(String collection, Document filter) {
+        try {
+            database.getCollection(collection).deleteOne(filter);
+            return true;
+        } catch (Exception e) {
+            logger.log(Level.SEVERE, "Error deleting document", e);
+            return false;
+        }
+    }
+
+    /**
+     * Execute SQL-style update (compatibility with old code)
+     * @param sql The SQL statement with placeholders (ignored)
+     * @param params The parameters to replace the placeholders (ignored)
+     * @return Always false as SQL operations are not supported
+     * @deprecated Use MongoDB native methods instead
+     */
+    @Deprecated
+    public boolean executeUpdate(String sql, Object... params) {
+        logger.warning("SQL operations are not supported with MongoDB. Use MongoDB native methods instead.");
+        return false;
+    }
+
+    /**
+     * Execute SQL-style query (compatibility with old code)
+     * @param sql The SQL statement with placeholders (ignored)
+     * @param params The parameters to replace the placeholders (ignored)
+     * @return An empty list as SQL operations are not supported
+     * @deprecated Use MongoDB native methods instead
+     */
+    @Deprecated
+    public List<Document> executeQuery(String sql, Object... params) {
+        logger.warning("SQL operations are not supported with MongoDB. Use MongoDB native methods instead.");
+        return new ArrayList<>();
+    }
+
+    /**
+     * Execute SQL-style update (compatibility with old code)
+     * @param sql The SQL statement (ignored)
+     * @return Always false as SQL operations are not supported
+     * @deprecated Use MongoDB native methods instead
+     */
+    @Deprecated
+    public boolean executeUpdate(String sql) {
+        logger.warning("SQL operations are not supported with MongoDB. Use MongoDB native methods instead.");
+        return false;
+    }
+
+    /**
+     * Execute SQL-style query (compatibility with old code)
+     * @param sql The SQL statement (ignored)
+     * @return An empty list as SQL operations are not supported
+     * @deprecated Use MongoDB native methods instead
+     */
+    @Deprecated
+    public List<Document> executeQuery(String sql) {
+        logger.warning("SQL operations are not supported with MongoDB. Use MongoDB native methods instead.");
+        return new ArrayList<>();
+    }
+
+    /**
+     * Get the MongoDB client
+     * @return The MongoDB client
+     */
+    public MongoClient getMongoClient() {
+        return mongoClient;
+    }
+
+    /**
+     * Get the MongoDB database
+     * @return The MongoDB database
+     */
+    public MongoDatabase getDatabase() {
+        return database;
+    }
+
+    /**
+     * Get MongoDB connection as generic Object (for compatibility)
+     * @return The MongoDB client as Object
+     */
+    public Object getConnection() {
+        return mongoClient;
     }
 }

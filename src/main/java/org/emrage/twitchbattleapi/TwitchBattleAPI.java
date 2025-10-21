@@ -24,10 +24,20 @@ public class TwitchBattleAPI {
      */
     private TwitchBattleAPI(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.databaseManager = new DatabaseManager();
-        this.pointSystem = new PointSystem(this);
-        this.teamManager = new TeamManager(this);
-        this.displayUtils = new DisplayUtils(this);
+        try {
+            this.databaseManager = new DatabaseManager();
+            this.databaseManager.connect();
+            this.databaseManager.createTables();
+
+            this.teamManager = new TeamManager(this);
+            this.pointSystem = new PointSystem(this);
+            this.displayUtils = new DisplayUtils(this);
+
+            plugin.getLogger().info("[TwitchBattleAPI] Successfully initialized API with MongoDB");
+        } catch (Exception e) {
+            plugin.getLogger().severe("[TwitchBattleAPI] Failed to initialize API: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -38,8 +48,6 @@ public class TwitchBattleAPI {
     public static TwitchBattleAPI init(JavaPlugin plugin) {
         if (instance == null) {
             instance = new TwitchBattleAPI(plugin);
-            instance.databaseManager.connect();
-            instance.databaseManager.createTables();
         }
         return instance;
     }

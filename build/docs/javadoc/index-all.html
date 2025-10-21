@@ -30,6 +30,7 @@ loadScripts(document, 'script');</script>
 <li>Package</li>
 <li>Klasse</li>
 <li><a href="overview-tree.html">Baum</a></li>
+<li><a href="deprecated-list.html">Veraltet</a></li>
 <li class="nav-bar-cell1-rev">Index</li>
 <li><a href="help-doc.html#index">Hilfe</a></li>
 </ul>
@@ -77,7 +78,7 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#createTables()" class="member-name-link">createTables()</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
-<div class="block">Create tables needed for this API</div>
+<div class="block">Create collections needed for this API</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/teams/TeamManager.html#createTeam(java.lang.String,java.lang.String,java.lang.String)" class="member-name-link">createTeam(String, String, String)</a> - Methode in Klasse org.emrage.twitchbattleapi.teams.<a href="org/emrage/twitchbattleapi/teams/TeamManager.html" title="Klasse in org.emrage.twitchbattleapi.teams">TeamManager</a></dt>
 <dd>
@@ -95,7 +96,7 @@ loadScripts(document, 'script');</script>
 <dd>&nbsp;</dd>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" class="type-name-link" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a> - Klasse in <a href="org/emrage/twitchbattleapi/database/package-summary.html">org.emrage.twitchbattleapi.database</a></dt>
 <dd>
-<div class="block">Manages database connections and operations</div>
+<div class="block">Manages MongoDB database connections and operations</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#%3Cinit%3E()" class="member-name-link">DatabaseManager()</a> - Konstruktor für Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
@@ -104,6 +105,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#%3Cinit%3E(java.lang.String)" class="member-name-link">DatabaseManager(String)</a> - Konstruktor für Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
 <div class="block">Create a new database manager</div>
+</dd>
+<dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#deleteOne(java.lang.String,org.bson.Document)" class="member-name-link">deleteOne(String, Document)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
+<dd>
+<div class="block">Delete a document from a collection</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/teams/TeamManager.html#deleteTeam(int)" class="member-name-link">deleteTeam(int)</a> - Methode in Klasse org.emrage.twitchbattleapi.teams.<a href="org/emrage/twitchbattleapi/teams/TeamManager.html" title="Klasse in org.emrage.twitchbattleapi.teams">TeamManager</a></dt>
 <dd>
@@ -134,23 +139,39 @@ loadScripts(document, 'script');</script>
 <dl class="index">
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#executeQuery(java.lang.String)" class="member-name-link">executeQuery(String)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
-<div class="block">Execute a SQL query statement</div>
+<div class="deprecation-block"><span class="deprecated-label">Veraltet.</span>
+<div class="deprecation-comment">Use MongoDB native methods instead</div>
+</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#executeQuery(java.lang.String,java.lang.Object...)" class="member-name-link">executeQuery(String, Object...)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
-<div class="block">Execute a prepared query with parameters</div>
+<div class="deprecation-block"><span class="deprecated-label">Veraltet.</span>
+<div class="deprecation-comment">Use MongoDB native methods instead</div>
+</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#executeUpdate(java.lang.String)" class="member-name-link">executeUpdate(String)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
-<div class="block">Execute a SQL update statement</div>
+<div class="deprecation-block"><span class="deprecated-label">Veraltet.</span>
+<div class="deprecation-comment">Use MongoDB native methods instead</div>
+</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#executeUpdate(java.lang.String,java.lang.Object...)" class="member-name-link">executeUpdate(String, Object...)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
-<div class="block">Execute a prepared statement with parameters</div>
+<div class="deprecation-block"><span class="deprecated-label">Veraltet.</span>
+<div class="deprecation-comment">Use MongoDB native methods instead</div>
+</div>
 </dd>
 </dl>
 <h2 class="title" id="I:F">F</h2>
 <dl class="index">
+<dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#find(java.lang.String,org.bson.Document)" class="member-name-link">find(String, Document)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
+<dd>
+<div class="block">Find documents in a collection</div>
+</dd>
+<dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#findOne(java.lang.String,org.bson.Document)" class="member-name-link">findOne(String, Document)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
+<dd>
+<div class="block">Find a single document in a collection</div>
+</dd>
 <dt><a href="org/emrage/twitchbattleapi/utils/DisplayUtils.html#formatText(java.lang.String,java.lang.String)" class="member-name-link">formatText(String, String)</a> - Methode in Klasse org.emrage.twitchbattleapi.utils.<a href="org/emrage/twitchbattleapi/utils/DisplayUtils.html" title="Klasse in org.emrage.twitchbattleapi.utils">DisplayUtils</a></dt>
 <dd>
 <div class="block">Format text with color</div>
@@ -168,11 +189,15 @@ loadScripts(document, 'script');</script>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#getConnection()" class="member-name-link">getConnection()</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
 <dd>
-<div class="block">Get the connection object</div>
+<div class="block">Get MongoDB connection as generic Object (for compatibility)</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/config/DatabaseConfig.html#getConnectionString()" class="member-name-link">getConnectionString()</a> - Statische Methode in Klasse org.emrage.twitchbattleapi.config.<a href="org/emrage/twitchbattleapi/config/DatabaseConfig.html" title="Klasse in org.emrage.twitchbattleapi.config">DatabaseConfig</a></dt>
 <dd>
 <div class="block">Gibt den MongoDB-Verbindungsstring zurück</div>
+</dd>
+<dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#getDatabase()" class="member-name-link">getDatabase()</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
+<dd>
+<div class="block">Get the MongoDB database</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/TwitchBattleAPI.html#getDatabaseManager()" class="member-name-link">getDatabaseManager()</a> - Methode in Klasse org.emrage.twitchbattleapi.<a href="org/emrage/twitchbattleapi/TwitchBattleAPI.html" title="Klasse in org.emrage.twitchbattleapi">TwitchBattleAPI</a></dt>
 <dd>
@@ -205,6 +230,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/emrage/twitchbattleapi/teams/Team.html#getMembers()" class="member-name-link">getMembers()</a> - Methode in Klasse org.emrage.twitchbattleapi.teams.<a href="org/emrage/twitchbattleapi/teams/Team.html" title="Klasse in org.emrage.twitchbattleapi.teams">Team</a></dt>
 <dd>
 <div class="block">Get the team members</div>
+</dd>
+<dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#getMongoClient()" class="member-name-link">getMongoClient()</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
+<dd>
+<div class="block">Get the MongoDB client</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/teams/Team.html#getName()" class="member-name-link">getName()</a> - Methode in Klasse org.emrage.twitchbattleapi.teams.<a href="org/emrage/twitchbattleapi/teams/Team.html" title="Klasse in org.emrage.twitchbattleapi.teams">Team</a></dt>
 <dd>
@@ -272,6 +301,10 @@ loadScripts(document, 'script');</script>
 <dt><a href="org/emrage/twitchbattleapi/TwitchBattleAPI.html#initWithCustomConfig(org.bukkit.plugin.java.JavaPlugin,java.lang.String)" class="member-name-link">initWithCustomConfig(JavaPlugin, String)</a> - Statische Methode in Klasse org.emrage.twitchbattleapi.<a href="org/emrage/twitchbattleapi/TwitchBattleAPI.html" title="Klasse in org.emrage.twitchbattleapi">TwitchBattleAPI</a></dt>
 <dd>
 <div class="block">Initialize the API with custom database configuration</div>
+</dd>
+<dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#insertOne(java.lang.String,org.bson.Document)" class="member-name-link">insertOne(String, Document)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
+<dd>
+<div class="block">Insert a document into a collection</div>
 </dd>
 <dt><a href="org/emrage/twitchbattleapi/teams/Team.html#isMember(java.util.UUID)" class="member-name-link">isMember(UUID)</a> - Methode in Klasse org.emrage.twitchbattleapi.teams.<a href="org/emrage/twitchbattleapi/teams/Team.html" title="Klasse in org.emrage.twitchbattleapi.teams">Team</a></dt>
 <dd>
@@ -391,6 +424,10 @@ loadScripts(document, 'script');</script>
 </dl>
 <h2 class="title" id="I:U">U</h2>
 <dl class="index">
+<dt><a href="org/emrage/twitchbattleapi/database/DatabaseManager.html#updateOne(java.lang.String,org.bson.Document,org.bson.Document)" class="member-name-link">updateOne(String, Document, Document)</a> - Methode in Klasse org.emrage.twitchbattleapi.database.<a href="org/emrage/twitchbattleapi/database/DatabaseManager.html" title="Klasse in org.emrage.twitchbattleapi.database">DatabaseManager</a></dt>
+<dd>
+<div class="block">Update a document in a collection</div>
+</dd>
 <dt><a href="org/emrage/twitchbattleapi/teams/TeamManager.html#updateTeam(org.emrage.twitchbattleapi.teams.Team)" class="member-name-link">updateTeam(Team)</a> - Methode in Klasse org.emrage.twitchbattleapi.teams.<a href="org/emrage/twitchbattleapi/teams/TeamManager.html" title="Klasse in org.emrage.twitchbattleapi.teams">TeamManager</a></dt>
 <dd>
 <div class="block">Update a team</div>
