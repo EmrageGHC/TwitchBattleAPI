@@ -23,5 +23,3 @@ release.properties
 # Logs
 *.log
 
-# Sensitive data - wichtig!
-src/main/java/org/emrage/twitchbattleapi/config/DatabaseConfig.java

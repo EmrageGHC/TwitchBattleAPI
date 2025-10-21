@@ -24,6 +24,39 @@ public class TwitchBattleAPI {
      */
     private TwitchBattleAPI(JavaPlugin plugin) {
         this.plugin = plugin;
+    }
+
+    /**
+     * Initialize the API
+     * @param plugin The plugin that is using this API
+     * @return The API instance
+     */
+    public static TwitchBattleAPI init(JavaPlugin plugin) {
+        if (instance == null) {
+            instance = new TwitchBattleAPI(plugin);
+
+            // Lade Konfiguration aus config.yml des Plugins
+            if (plugin.getConfig().contains("database")) {
+                String host = plugin.getConfig().getString("database.host", "localhost");
+                int port = plugin.getConfig().getInt("database.port", 27017);
+                String name = plugin.getConfig().getString("database.name", "TwitchBattle");
+                String username = plugin.getConfig().getString("database.username", "");
+                String password = plugin.getConfig().getString("database.password", "");
+
+                // Setze die Datenbankkonfiguration
+                DatabaseConfig.setCustomConfig(host, port, name, username, password);
+            }
+
+            // Initialisiere Datenbankverbindung und Komponenten
+            instance.initializeComponents();
+        }
+        return instance;
+    }
+
+    /**
+     * Initialize the database and components
+     */
+    private void initializeComponents() {
         try {
             this.databaseManager = new DatabaseManager();
             this.databaseManager.connect();
@@ -38,34 +71,6 @@ public class TwitchBattleAPI {
             plugin.getLogger().severe("[TwitchBattleAPI] Failed to initialize API: " + e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Initialize the API with default database configuration
-     * @param plugin The plugin that is using this API
-     * @return The API instance
-     */
-    public static TwitchBattleAPI init(JavaPlugin plugin) {
-        if (instance == null) {
-            instance = new TwitchBattleAPI(plugin);
-        }
-        return instance;
-    }
-
-    /**
-     * Initialize the API with custom database configuration
-     * @param plugin The plugin that is using this API
-     * @param databaseConfig Custom database configuration string
-     * @return The API instance
-     */
-    public static TwitchBattleAPI initWithCustomConfig(JavaPlugin plugin, String databaseConfig) {
-        if (instance == null) {
-            instance = new TwitchBattleAPI(plugin);
-            instance.databaseManager.setConnectionString(databaseConfig);
-            instance.databaseManager.connect();
-            instance.databaseManager.createTables();
-        }
-        return instance;
     }
 
     /**
