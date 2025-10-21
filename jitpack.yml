@@ -5,11 +5,19 @@ before_install:
   - mkdir -p src/main/java/org/emrage/twitchbattleapi/config/
   - echo "package org.emrage.twitchbattleapi.config;
     public class DatabaseConfig {
-    private static final String DB_HOST = \"localhost\";
-    private static final int DB_PORT = 27017;
-    private static final String DB_NAME = \"TwitchBattle\";
-    private static final String DB_USER = \"username\";
-    private static final String DB_PASSWORD = \"password\";
+    private static String DB_HOST = \"localhost\";
+    private static int DB_PORT = 27017;
+    private static String DB_NAME = \"TwitchBattle\";
+    private static String DB_USER = \"username\";
+    private static String DB_PASSWORD = \"password\";
+    
+    public static void setCustomConfig(String host, int port, String name, String user, String password) {
+    DB_HOST = host;
+    DB_PORT = port;
+    DB_NAME = name;
+    DB_USER = user;
+    DB_PASSWORD = password;
+    }
     
     public static String getConnectionString() {
     return \"mongodb://\" + DB_USER + \":\" + DB_PASSWORD + \"@\" + DB_HOST + \":\" + DB_PORT + \"/\" + DB_NAME + \"?authSource=\" + DB_NAME;
