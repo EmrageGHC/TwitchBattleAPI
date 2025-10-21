@@ -22,6 +22,7 @@ public class DatabaseManager {
      */
     public DatabaseManager() {
         this.connectionString = DatabaseConfig.getConnectionString();
+        connect();
     }
 
     /**
@@ -103,22 +104,25 @@ public class DatabaseManager {
      * @return True if successful, false otherwise
      */
     public boolean executeUpdate(String sql) {
-        try (PreparedStatement stmt = connection.prepareStatement(sql)) {
-            stmt.executeUpdate();
-            return true;
+        try {
+            if (connection == null || connection.isClosed()) {
+                connect();
+            }
+            try (PreparedStatement stmt = connection.prepareStatement(sql)) {
+                stmt.executeUpdate();
+                return true;
+            }
         } catch (SQLException e) {
             logger.log(Level.SEVERE, "Failed to execute update: " + sql, e);
             return false;
         }
     }
 
-    /**
-     * Execute a SQL query statement
-     * @param sql The SQL statement
-     * @return ResultSet with the query results
-     */
     public ResultSet executeQuery(String sql) {
         try {
+            if (connection == null || connection.isClosed()) {
+                connect();
+            }
             PreparedStatement stmt = connection.prepareStatement(sql);
             return stmt.executeQuery();
         } catch (SQLException e) {

@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"Alle Packages","u":"allpackages-index.html"},{"l":"org.emrage.twitchbattleapi"},{"l":"org.emrage.twitchbattleapi.config"},{"l":"org.emrage.twitchbattleapi.database"},{"l":"org.emrage.twitchbattleapi.points"},{"l":"org.emrage.twitchbattleapi.teams"},{"l":"org.emrage.twitchbattleapi.utils"}];updateSearchResults();

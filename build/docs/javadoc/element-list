@@ -1,0 +1,6 @@
+org.emrage.twitchbattleapi
+org.emrage.twitchbattleapi.config
+org.emrage.twitchbattleapi.database
+org.emrage.twitchbattleapi.points
+org.emrage.twitchbattleapi.teams
+org.emrage.twitchbattleapi.utils
