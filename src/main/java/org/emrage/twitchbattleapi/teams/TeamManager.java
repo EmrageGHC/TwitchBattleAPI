@@ -1,8 +1,6 @@
 package org.emrage.twitchbattleapi.teams;
 
-import com.mongodb.client.model.Filters;
 import org.bson.Document;
-import org.bson.conversions.Bson;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.emrage.twitchbattleapi.TwitchBattleAPI;
@@ -58,8 +56,8 @@ public class TeamManager {
         }
 
         // Load team members
-        Bson teamFilter = Filters.ne("team_id", null);
-        List<Document> playerDocs = api.getDatabaseManager().find("players", (Document) teamFilter);
+        Document teamFilter = new Document("team_id", new Document("$ne", null));
+        List<Document> playerDocs = api.getDatabaseManager().find("players", teamFilter);
         for (Document doc : playerDocs) {
             UUID playerUUID = UUID.fromString(doc.getString("uuid"));
             int teamId = doc.getInteger("team_id");
@@ -147,7 +145,6 @@ public class TeamManager {
             return false;
         }
 
-        Bson filter = Filters.eq("id", id);
         boolean success = api.getDatabaseManager().deleteOne("teams", new Document("id", id));
 
         if (success) {
