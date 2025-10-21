@@ -1,9 +1,11 @@
 package org.emrage.twitchbattleapi;
 
 import org.bukkit.plugin.java.JavaPlugin;
+import org.emrage.twitchbattleapi.config.DatabaseConfig;
 import org.emrage.twitchbattleapi.database.DatabaseManager;
 import org.emrage.twitchbattleapi.points.PointSystem;
 import org.emrage.twitchbattleapi.teams.TeamManager;
+import org.emrage.twitchbattleapi.utils.DisplayUtils;
 
 /**
  * Main API class for TwitchBattle
@@ -14,28 +16,44 @@ public class TwitchBattleAPI {
     private DatabaseManager databaseManager;
     private PointSystem pointSystem;
     private TeamManager teamManager;
+    private DisplayUtils displayUtils;
 
     /**
      * Private constructor for singleton pattern
      * @param plugin The plugin that is using this API
-     * @param databaseConfig Database configuration string
      */
-    private TwitchBattleAPI(JavaPlugin plugin, String databaseConfig) {
+    private TwitchBattleAPI(JavaPlugin plugin) {
         this.plugin = plugin;
-        this.databaseManager = new DatabaseManager(databaseConfig);
+        this.databaseManager = new DatabaseManager();
         this.pointSystem = new PointSystem(this);
         this.teamManager = new TeamManager(this);
+        this.displayUtils = new DisplayUtils(this);
     }
 
     /**
-     * Initialize the API
+     * Initialize the API with default database configuration
      * @param plugin The plugin that is using this API
-     * @param databaseConfig Database configuration string
      * @return The API instance
      */
-    public static TwitchBattleAPI init(JavaPlugin plugin, String databaseConfig) {
+    public static TwitchBattleAPI init(JavaPlugin plugin) {
         if (instance == null) {
-            instance = new TwitchBattleAPI(plugin, databaseConfig);
+            instance = new TwitchBattleAPI(plugin);
+            instance.databaseManager.connect();
+            instance.databaseManager.createTables();
+        }
+        return instance;
+    }
+
+    /**
+     * Initialize the API with custom database configuration
+     * @param plugin The plugin that is using this API
+     * @param databaseConfig Custom database configuration string
+     * @return The API instance
+     */
+    public static TwitchBattleAPI initWithCustomConfig(JavaPlugin plugin, String databaseConfig) {
+        if (instance == null) {
+            instance = new TwitchBattleAPI(plugin);
+            instance.databaseManager.setConnectionString(databaseConfig);
             instance.databaseManager.connect();
             instance.databaseManager.createTables();
         }
@@ -83,6 +101,14 @@ public class TwitchBattleAPI {
      */
     public TeamManager getTeamManager() {
         return teamManager;
+    }
+
+    /**
+     * Get the display utils
+     * @return The display utils
+     */
+    public DisplayUtils getDisplayUtils() {
+        return displayUtils;
     }
 
     /**

@@ -7,7 +7,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.emrage.twitchbattleapi.TwitchBattleAPI;
+import org.emrage.twitchbattleapi.config.DatabaseConfig;
 
 /**
  * Manages database connections and operations
@@ -18,10 +18,25 @@ public class DatabaseManager {
     private final Logger logger = Logger.getLogger("TwitchBattleAPI");
 
     /**
+     * Create a new database manager with default connection string
+     */
+    public DatabaseManager() {
+        this.connectionString = DatabaseConfig.getConnectionString();
+    }
+
+    /**
      * Create a new database manager
      * @param connectionString JDBC connection string
      */
     public DatabaseManager(String connectionString) {
+        this.connectionString = connectionString;
+    }
+
+    /**
+     * Set a custom connection string
+     * @param connectionString JDBC connection string
+     */
+    public void setConnectionString(String connectionString) {
         this.connectionString = connectionString;
     }
 

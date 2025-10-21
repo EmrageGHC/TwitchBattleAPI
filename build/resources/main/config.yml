@@ -1,0 +1,9 @@
+# TwitchBattleAPI Configuration
+
+# Database configuration
+database:
+  # JDBC connection string
+  # Supported formats:
+  # - SQLite: jdbc:sqlite:plugins/TwitchBattleAPI/database.db
+  # - MySQL: jdbc:mysql://hostname:port/database?user=username&password=password
+  connectionString: "jdbc:sqlite:plugins/TwitchBattleAPI/database.db"
